@@ -12,7 +12,7 @@ class UserModel
     // Create new users (admin/students)
     public function create($data)
     {
-        $sql = "INSERT INTO users (fullname, email, phone, student_no, username, password, role_id, status) 
+        $sql = "INSERT INTO Users (fullname, email, phone, student_no, username, password, role_id, status) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
 
@@ -24,7 +24,7 @@ class UserModel
             $data['username'], 
             password_hash($data['password'], PASSWORD_DEFAULT), 
             $data['role_id'],
-            $data['status'],
+            $data['status'] ?? 'Active',
         ]);
     }
 

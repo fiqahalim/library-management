@@ -20,29 +20,36 @@ class AuthController extends Controller
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
 
-        $loginInput = $_POST['username'] ?? ''; 
+        $loginInput = trim($_POST['username'] ?? ''); 
         $password = $_POST['password'] ?? '';
 
-        $userModel = $this->model('UserModel');
         $user = filter_var($loginInput, FILTER_VALIDATE_EMAIL) 
-                ? $userModel->getByEmail($loginInput) 
-                : $userModel->getByUsername($loginInput);
+                ? $this->userModel->getByEmail($loginInput) 
+                : $this->userModel->getByUsername($loginInput);
 
+        // Check if user exists and password is correct
         if ($user && password_verify($password, $user['password'])) {
-            if (!$user['is_verified']) {
-                Flash::set('error', "Please verify your account first.");
-                header("Location: " . APP_URL . "/auth/verify");
+            
+            // Check if account is Active
+            if ($user['status'] !== 'Active') {
+                Flash::set('error', "Your account is inactive. Please contact the librarian.");
+                header("Location: " . APP_URL . "/auth/login");
                 exit;
             }
             
             $_SESSION['is_logged_in'] = true;
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['role_id'] = $user['role_id']; 
-            $_SESSION['full_name'] = $user['full_name'];
+            $_SESSION['fullname'] = $user['fullname'];
 
-            Flash::set('success', "Welcome back, " . $user['full_name']);
+            Flash::set('success', "Welcome back, " . $user['fullname']);
 
-            header("Location: " . APP_URL . "/auth/dashboard");
+            // Redirect based on Role ID (1=Admin, 2=Student)
+            if ($user['role_id'] == 1) {
+                header("Location: " . APP_URL . "/admin/members");
+            } else {
+                header("Location: " . APP_URL . "/student/dashboard");
+            }
             exit;
         }
 
@@ -63,44 +70,36 @@ class AuthController extends Controller
             exit;
         }
 
-        $fullname = trim($_POST['fullname'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
-        $student_no = trim($_POST['student_no'] ?? '');
-        $username = trim($_POST['username'] ?? '');
-        $password = trim($_POST['password'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
 
-        // 1. Validation
-        if (empty($fullname) || empty($email) || empty($phone) || empty($student_no) || empty($username) || empty($password)) {
-            Flash::set('error', "All fields are required.");
+        if ($password !== $confirm) {
+            Flash::set('error', "Passwords do not match.");
             header("Location: " . APP_URL . "/auth/register");
             exit;
         }
 
-        // 2. Check if Email already exists in unified users table
-        $existingUser = $this->userModel->getByEmail($email);
-        if ($existingUser) {
-            Flash::set('error', "Email already registered.");
-            header("Location: " . APP_URL . "/auth/register");
-            exit;
-        }
-
-        // 3. Prepare Registration Data
         $data = [
-            'fullname'      => $fullname,
-            'email'         => $email,
-            'phone'         => $phone,
-            'student_no'    => $student_no,
-            'username'      => $username,
-            'password'      => $password,
-            'role_id'       => 2, // HARDCODED: 2 is for 'Member'
-            'status'        => 1,
+            'fullname'   => trim($_POST['fullname'] ?? ''),
+            'email'      => trim($_POST['email'] ?? ''),
+            'phone'      => trim($_POST['phone'] ?? ''),
+            'student_no' => trim($_POST['student_no'] ?? ''),
+            'username'   => trim($_POST['username'] ?? ''),
+            'password'   => $password,
+            'role_id'    => 2, // Hardcoded for Student
+            'status'     => 'Active' 
         ];
 
-        // 4. Create User (Using the Model we built earlier)
+        // Check if email/username already exists
+        if ($this->userModel->getByEmail($data['email']) || $this->userModel->getByUsername($data['username'])) {
+            Flash::set('error', "Username or Email already exists.");
+            header("Location: " . APP_URL . "/auth/register");
+            exit;
+        }
+
         if ($this->userModel->create($data)) {
-            Flash::set('success', "Registration success. Hooray!");
-            header("Location: " . APP_URL . "/auth/verify");
+            Flash::set('success', "Registration success! You can now login.");
+            header("Location: " . APP_URL . "/auth/login"); // Changed from /auth/verify
         } else {
             Flash::set('error', "Registration failed. Please try again.");
             header("Location: " . APP_URL . "/auth/register");
