@@ -4,7 +4,7 @@
  * Database Configuration
  * Adjust DB_USER and DB_PASS to match your local MySQL credentials.
  */
-define("DB_HOST", "127.0.0.1:3316");
+define("DB_HOST", "127.0.0.1:3306");
 define("DB_NAME", "library");
 define("DB_USER", "root");
 define("DB_PASS", "");
