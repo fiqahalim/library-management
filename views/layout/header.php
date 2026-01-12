@@ -56,7 +56,7 @@ $base_path = parse_url(APP_URL, PHP_URL_PATH);
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= APP_URL ?>/admin/members">
+                        <a class="nav-link" href="<?= APP_URL ?>/admin/students">
                             <i class="fas fa-users"></i>
                             <span>Students</span>
                         </a>

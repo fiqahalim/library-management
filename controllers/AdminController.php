@@ -167,6 +167,24 @@ class AdminController extends Controller
         $this->view('admin/books/create-edit', $data);
     }
 
+    // Delete book
+    public function deleteBook($id)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        if ($this->bookModel->delete($id)) {
+            Flash::set('success', 'Book deleted successfully.');
+        } else {
+            Flash::set('error', 'Unable to delete book.');
+        }
+
+        header('Location: ' . APP_URL . '/admin/books');
+        exit;
+    }
+
     // CATEGORIES MANAGEMENT
     public function category()
     {
@@ -230,6 +248,24 @@ class AdminController extends Controller
         $this->view('admin/categories/create-edit', $data);
     }
 
+    // Delete category
+    public function deleteCategory($id)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        if ($this->categoryModel->delete($id)) {
+            Flash::set('success', 'Category deleted successfully.');
+        } else {
+            Flash::set('error', 'Unable to delete the category.');
+        }
+
+        header('Location: ' . APP_URL . '/admin/categories');
+        exit;
+    }
+
     // STUDENTS MANAGEMENT
     public function students()
     {
@@ -238,12 +274,15 @@ class AdminController extends Controller
             exit;
         }
 
-        $members = $this->userModel->getAllMembers(); // checking model, get sql query
+        $user = $this->userModel->getAllUsers(); // checking model, get sql query
 
-        $this->view('admin/members/index', [
-            'members' => $members,
-            'full_name' => $_SESSION['full_name'],
-            'role_id' => $_SESSION['role_id']
+        $this->view('admin/students/', [
+            'fullname' => $_POST['fullname'],
+            'email' => $_POST['email'],
+            'phone' => $_POST['phone'],
+            'student_no' => $_POST['student_no'],
+            'username' => $_SESSION['username'],
+            'role_id' => $_SESSION['role_id'],
         ]);
     }
 
@@ -258,41 +297,41 @@ class AdminController extends Controller
         $data = [
             'user' => null,
             'roles' => $this->roleModel->getAllRoles(),
-            'plans' => $this->planModel->getAllPlans(),
-            'title' => $id ? 'Edit Member' : 'Create Member'
+            'title' => $id ? 'Edit Student' : 'Create Student'
         ];
 
         if ($id) {
-            $data['user'] = $this->userModel->getMemberWithSubscription($id);
+            $data['user'] = $this->userModel->getAll();
             if (!$data['user']) {
-                die("Member not found.");
+                die("Student not found.");
             }
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $userData = [
-                'full_name' => trim($_POST['full_name']),
+                'fullname' => trim($_POST['fullname']),
                 'email'     => trim($_POST['email']),
                 'phone'     => trim($_POST['phone']),
-                'username'  => trim($_POST['username']),
-                'role_id'   => $_POST['role_id']
+                'student_no'=> trim($_POST['student_no']),
+                'username'  => trim($_SESSION['username']),
+                'role_id'   => $_SESSION['role_id']
             ];
 
             if ($id) {
                 if ($this->userModel->update($id, $userData)) {
-                    header('Location: ' . APP_URL . '/admin/members?success=updated');
+                    header('Location: ' . APP_URL . '/admin/students');
                     exit;
                 }
             } else {
                 $userData['password'] = $_POST['password']; 
                 if ($this->userModel->create($userData)) {
-                    header('Location: ' . APP_URL . '/admin/members?success=created');
+                    header('Location: ' . APP_URL . '/admin/students');
                     exit;
                 }
             }
         }
 
-        $this->view('admin/members/create-edit', $data);
+        $this->view('admin/students', $data);
     }
 
     // View students
@@ -305,12 +344,12 @@ class AdminController extends Controller
         }
 
         $user = $this->userModel->getById($id);
-        $subscriptions = $this->subscriptionModel->getByUser($id);
+        
 
         header('Content-Type: application/json');
         echo json_encode([
             'user' => $user,
-            'subscriptions' => $subscriptions
+            
         ]);
         exit;
     }
@@ -324,9 +363,9 @@ class AdminController extends Controller
         }
 
         if ($this->userModel->delete($id)) {
-            header('Location: ' . APP_URL . '/admin/members?success=deleted');
+            header('Location: ' . APP_URL . '/admin/students');
         } else {
-            header('Location: ' . APP_URL . '/admin/members?error=failed');
+            header('Location: ' . APP_URL . '/admin/students');
         }
         exit;
     }

@@ -137,34 +137,6 @@ class UserModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getAllMembers()
-    {
-        $sql = "SELECT u.*, r.role_name, s.status as sub_status, pl.plan_name 
-                FROM users u
-                JOIN roles r ON u.role_id = r.role_id
-                LEFT JOIN subscriptions s ON u.user_id = s.user_id AND s.status = 'Active'
-                LEFT JOIN plans pl ON s.plan_id = pl.plan_id
-                WHERE u.role_id = 2
-                ORDER BY u.created_at DESC";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getMemberWithSubscription($id)
-    {
-        $sql = "SELECT u.*, s.sub_id, s.plan_id, s.status as sub_status, s.start_date, s.end_date, s.final_price, p.plan_name 
-                FROM users u
-                LEFT JOIN subscriptions s ON u.user_id = s.user_id
-                LEFT JOIN plans p ON s.plan_id = p.plan_id
-                WHERE u.user_id = ?
-                ORDER BY s.start_date DESC LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
     public function delete($id)
     {
         // Note: If the user has subscriptions/payments, 
