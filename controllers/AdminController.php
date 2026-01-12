@@ -274,14 +274,11 @@ class AdminController extends Controller
             exit;
         }
 
-        $user = $this->userModel->getAllUsers(); // checking model, get sql query
+        $users = $this->userModel->getAllUsers();
 
-        $this->view('admin/students/', [
-            'fullname' => $_POST['fullname'],
-            'email' => $_POST['email'],
-            'phone' => $_POST['phone'],
-            'student_no' => $_POST['student_no'],
-            'username' => $_SESSION['username'],
+        $this->view('admin/students/index', [
+            'users' => $users,
+            'fullname' => $_SESSION['fullname'],
             'role_id' => $_SESSION['role_id'],
         ]);
     }
