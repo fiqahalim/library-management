@@ -2,13 +2,15 @@
 
 class AuthController extends Controller
 {
-    private $userModel, $roleModel;
+    private $userModel, $roleModel, $historyModel, $bookModel;
 
     // Constructor to initialize the model
     public function __construct()
     {
         $this->userModel = $this->model('UserModel');
         $this->roleModel = $this->model('RoleModel');
+        $this->historyModel = $this->model('HistoryModel');
+        $this->bookModel = $this->model('BookModel');
     }
 
     public function login()
@@ -123,12 +125,18 @@ class AuthController extends Controller
 
         // --- ADMIN DASHBOARD ---
         if ($roleId == 1) {
+            $data['totalBooks'] = count($this->bookModel->getAllBooks());
+            $data['totalUsers'] = count($this->userModel->getAllUsers());
+
             $this->view('auth/dashboard', $data);
             return;
         }
 
         // --- MEMBER DASHBOARD ---
         if ($roleId == 2) {
+            $data['availableBooks'] = $this->bookModel->getAvailableBooks(); 
+            $data['myHistory'] = $this->historyModel->getUserHistory($userId);
+            
             $this->view('auth/dashboard', $data);
             return;
         }

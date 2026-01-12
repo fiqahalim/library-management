@@ -109,16 +109,40 @@ class BookModel
     public function getAvailableBooks()
     {
         $sql = "SELECT 
-                    b.book_name,
-                    a.author_name,
-                    c.category_name
+                b.book_id, 
+                b.book_name, 
+                a.author_name, 
+                c.category_name 
                 FROM Books b
-                INNER JOIN Authors a ON b.author_id = a.author_id
-                INNER JOIN Categories c ON b.category_id = c.category_id
-                WHERE b.availability_status = 'available'
-                ORDER BY b.book_name";
+                JOIN Authors a ON b.author_id = a.author_id
+                JOIN Categories c ON b.category_id = c.category_id
+                WHERE b.availability_status = 'Available' 
+                ORDER BY b.created_at DESC";
         
-        $stmt = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function searchBooks($keyword)
+    {
+        $searchTerm = "%$keyword%";
+        $sql = "SELECT 
+                    b.book_id, 
+                    b.book_name, 
+                    b.availability_status,
+                    a.author_name, 
+                    c.category_name 
+                FROM Books b
+                JOIN Authors a ON b.author_id = a.author_id
+                JOIN Categories c ON b.category_id = c.category_id
+                WHERE b.book_name LIKE ? OR a.author_name LIKE ?
+                ORDER BY b.book_name ASC";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$searchTerm, $searchTerm]);
+        
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

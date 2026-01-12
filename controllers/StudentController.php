@@ -2,66 +2,73 @@
 
 class StudentController extends Controller
 {
-    private $bookModel, $historyModel, $fineModel;
+    private $bookModel, $historyModel;
 
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
-
         if (!isset($_SESSION['is_logged_in']) || $_SESSION['role_id'] != 2) {
             header("Location: " . APP_URL . "/auth/login");
             exit;
         }
-
-        $this->bookModel    = $this->model('BookModel');
+        $this->bookModel = $this->model('BookModel');
         $this->historyModel = $this->model('HistoryModel');
-        $this->fineModel    = $this->model('FineModel');
     }
 
-    /**
-     * Display the Student Dashboard
-     */
     public function dashboard()
     {
-        $userId = $_SESSION['user_id'];
-
-        $data = [
-            'title'             => 'Student Dashboard',
-            'fullname'          => $_SESSION['fullname'],
-            'availableBooks'    => $this->bookModel->getAvailableBooks(5), // Top 5 recent
-            'myCurrentBorrows'  => $this->historyModel->getUserActiveLoans($userId),
-            'totalFines'        => $this->fineModel->getUserTotalFines($userId)
-        ];
-
-        $this->view('student/dashboard', $data);
+        $this->view('auth/dashboard', ['fullname' => $_SESSION['fullname']]);
     }
 
-    /**
-     * View all books in the library
-     */
-    public function books()
+    // Requirement: View Available Books (Title, Author, Category)
+    public function viewBooks()
     {
-        $data = [
-            'title' => 'Library Books',
-            'books' => $this->bookModel->getAllBooks()
-        ];
+        $search = $_GET['search'] ?? '';
+    
+        if (!empty($search)) {
+            $books = $this->bookModel->searchBooks($search);
+        } else {
+            $books = $this->bookModel->getAllBooks();
+        }
 
-        $this->view('student/books', $data);
+        $data = [
+            'title' => 'Available Books',
+            'books' => $books,
+            'search' => $search,
+        ];
+        $this->view('student/books/index', $data);
     }
 
-    /**
-     * View user's borrowing history and fines
-     */
-    public function history()
+    // Submit borrow request
+    public function borrowBook()
     {
-        $userId = $_SESSION['user_id'];
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $bookId = $_POST['book_id'];
+            $userId = $_SESSION['user_id'];
+            
+            if ($this->historyModel->createRequest($userId, $bookId)) {
+                Flash::set('success', 'Request submitted! Please pick up the book at the counter.');
+            }
+            header("Location: " . APP_URL . "/student/history");
+        }
+    }
 
+    // Requirement: Allow cancellation
+    public function cancelBorrowRequest()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $borrowId = $_POST['borrow_id'];
+            $this->historyModel->updateStatus($borrowId, 'Cancelled');
+            Flash::set('success', 'Request cancelled.');
+            header("Location: " . APP_URL . "/student/history");
+        }
+    }
+
+    public function viewHistory()
+    {
         $data = [
-            'title'   => 'My Borrowing History',
-            'history' => $this->historyModel->getUserHistory($userId),
-            'fines'   => $this->fineModel->getUserFines($userId)
+            'history' => $this->historyModel->getUserHistory($_SESSION['user_id'])
         ];
-
-        $this->view('student/history', $data);
+        $this->view('student/history/index', $data);
     }
 }

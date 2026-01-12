@@ -6,7 +6,6 @@ $isAdmin = ($role_id === 1);
 
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $base_path = parse_url(APP_URL, PHP_URL_PATH);
-$current_page = trim(str_replace($base_path, '', $request_uri), '/');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,25 +62,20 @@ $current_page = trim(str_replace($base_path, '', $request_uri), '/');
                         </a>
                     </li>
                 <?php else: ?>
-                <div class="sidebar-heading">Library Services</div>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= APP_URL ?>/books/availability">
-                        <i class="fas fa-fw fa-search"></i>
-                        <span>Book Availability</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= APP_URL ?>/books/borrow">
-                        <i class="fas fa-fw fa-hand-holding-medical"></i>
-                        <span>Borrow Books</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?= APP_URL ?>/student/history">
-                        <i class="fas fa-fw fa-history"></i>
-                        <span>Browsing History</span>
-                    </a>
-                </li>
+                    <div class="sidebar-heading">Library Services</div>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= APP_URL ?>/student/books">
+                            <i class="fas fa-fw fa-search"></i>
+                            <span>Book Availability</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= APP_URL ?>/student/history">
+                            <i class="fas fa-fw fa-hand-holding-medical"></i>
+                            <span>My Borrowings</span>
+                        </a>
+                    </li>
                 <?php endif; ?>
             </ul>
         <div id="content-wrapper" class="d-flex flex-column">

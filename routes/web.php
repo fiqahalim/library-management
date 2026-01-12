@@ -36,7 +36,6 @@ Route::group('/auth', function () {
  * 3. Student Routes (Replaces HomeController)
  */
 Route::group('/student', function () {
-    Route::get('/dashboard', 'Student@dashboard');
     Route::get('/books', 'Student@viewBooks');
     Route::post('/borrow', 'Student@borrowBook');
     Route::get('/history', 'Student@viewHistory');

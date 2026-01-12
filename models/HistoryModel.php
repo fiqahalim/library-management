@@ -74,7 +74,7 @@ class HistoryModel
     }
 
     // Get History by User
-    public function getHistoryByUser()
+    public function getUserHistory($userId)
     {
         $sql = "SELECT 
                     h.history_id,
@@ -85,30 +85,48 @@ class HistoryModel
                     b.book_name
                 FROM Histories h
                 INNER JOIN Books b ON h.book_id = b.book_id
-                WHERE h.user_id
+                WHERE h.user_id = ?
                 ORDER BY h.borrow_date DESC";
         
-        $stmt = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$userId]);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Get history status (pending, approved, returned, cancelled)
-    // Part ni tak siap lagi
-    public function getHistoryStatus()
+    public function createRequest($userId, $bookId)
     {
-        $sql = "SELECT 
-                    h.history_id,
-                    h.due_date,
-                    b.book_name,
-                    u.fullname
-                FROM Histories h
-                INNER JOIN Books b ON h.book_id = b.book_id
-                INNER JOIN Categories c ON h.category_id = c.category_name
-                INNER JOIN Users u ON h.user_id = u.fullname
-                WHERE h.user_id = 'returned'
-                AND h.due_date < CURDATE()";
+        // 1. Get the category_id from the Books table first
+        $sqlBook = "SELECT category_id FROM Books WHERE book_id = ?";
+        $stmtBook = $this->db->prepare($sqlBook);
+        $stmtBook->execute([$bookId]);
+        $book = $stmtBook->fetch(PDO::FETCH_ASSOC);
+        $categoryId = $book['category_id'];
+
+        // 2. Set dates (Due date is 14 days from today)
+        $borrowDate = date('Y-m-d H:i:s');
+        $dueDate = date('Y-m-d H:i:s', strtotime('+14 days'));
+
+        // 3. Insert into Histories table
+        $sql = "INSERT INTO Histories (book_id, category_id, user_id, borrow_date, due_date, status) 
+                VALUES (?, ?, ?, ?, ?, 'Pending')";
         
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([
+            $bookId,
+            $categoryId,
+            $userId,
+            $borrowDate,
+            $dueDate
+        ]);
+    }
+
+    public function updateStatus($id, $status)
+    {
+        $sql = "UPDATE Histories SET status = ? WHERE history_id = ?";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([$status, $id]);
     }
 }
