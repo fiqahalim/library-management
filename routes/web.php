@@ -54,10 +54,10 @@ Route::group('/admin', function () {
     Route::get('/authors/delete/{id}', 'Admin@deleteAuthor');
 
     // Book Management
-    Route::get('/books', 'Admin@books'); 
-    Route::match(['GET', 'POST'], '/books/create', 'Admin@createOrUpdatePlan');
-    Route::match(['GET', 'POST'], '/books/edit/{id}', 'Admin@createOrUpdatePlan');
-    Route::get('/books/delete/{id}', 'Admin@deletePlan');
+    Route::get('/books', 'Admin@book'); 
+    Route::match(['GET', 'POST'], '/books/create', 'Admin@createOrUpdateBook');
+    Route::match(['GET', 'POST'], '/books/edit/{id}', 'Admin@createOrUpdateBook');
+    Route::get('/books/delete/{id}', 'Admin@deleteBook');
 
     // Categories Management
     Route::get('/categories', 'Admin@categories'); 

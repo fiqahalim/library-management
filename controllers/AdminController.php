@@ -2,18 +2,19 @@
 
 class AdminController extends Controller
 {
-    private $db, $userModel, $roleModel, $authorModel;
+    private $db, $authorModel, $bookModel, $userModel, $roleModel;
 
     public function __construct()
     {
+        $this->authorModel = $this->model('AuthorModel');
+        $this->bookModel = $this->model('BookModel');
         $this->userModel = $this->model('UserModel');
         $this->roleModel = $this->model('RoleModel');
-        $this->authorModel = $this->model('AuthorModel');
 
         $this->db = Database::getInstance()->getConnection();
     }
 
-    // STUDENTS MANAGEMENT
+    // AUTHORS MANAGEMENT
     public function author()
     {
         if ($_SESSION['role_id'] != 1) {
@@ -30,6 +31,87 @@ class AdminController extends Controller
         ]);
     }
 
+    public function createOrUpdateAuthor($id = null)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        $data = [
+            'author' => null,
+            'title'  => $id ? 'Edit Author' : 'Create Author'
+        ];
+
+        // If editing, fetch existing data
+        if ($id) {
+            $data['author'] = $this->authorModel->getById($id);
+            if (!$data['author']) {
+                Flash::set('error', 'Author not found.');
+                header('Location: ' . APP_URL . '/admin/authors');
+                exit;
+            }
+        }
+
+        // Handle Form Submission
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $authorData = [
+                'author_name' => trim($_POST['author_name']),
+                'bio'         => trim($_POST['bio']),
+            ];
+
+            if ($id) {
+                if ($this->authorModel->update($id, $authorData)) {
+                    Flash::set('success', 'Author updated successfully!');
+                }
+            } else {
+                if ($this->authorModel->create($authorData)) {
+                    Flash::set('success', 'Author created successfully!');
+                }
+            }
+            header('Location: ' . APP_URL . '/admin/authors');
+            exit;
+        }
+
+        $this->view('admin/authors/create-edit', $data);
+    }
+
+    public function deleteAuthor($id)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        if ($this->authorModel->delete($id)) {
+            Flash::set('success', 'Author deleted successfully.');
+        } else {
+            Flash::set('error', 'Unable to delete author. They may be linked to existing books.');
+        }
+
+        header('Location: ' . APP_URL . '/admin/authors');
+        exit;
+    }
+
+    // BOOKS MANAGEMENT
+    public function book()
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        $books = $this->bookModel->getAllBooks();
+
+        $this->view('admin/books/index', [
+            'books' => $books,
+            'fullname' => $_SESSION['fullname'],
+            'role_id' => $_SESSION['role_id']
+        ]);
+    }
+
+    // CATEGORIES MANAGEMENT
+    
     // STUDENTS MANAGEMENT
     public function students()
     {

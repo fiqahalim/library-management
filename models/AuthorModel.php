@@ -30,4 +30,29 @@ class AuthorModel
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getById($id)
+    {
+        $sql = "SELECT * FROM authors WHERE author_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function update($id, $data)
+    {
+        $sql = "UPDATE authors SET author_name = ?, bio = ? WHERE author_id = ?";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([$data['author_name'], $data['bio'], $id]);
+    }
+
+    public function delete($id)
+    {
+        $sql = "DELETE FROM authors WHERE author_id = ?";
+        $stmt = $this->db->prepare($sql);
+        
+        return $stmt->execute([$id]);
+    }
 }
