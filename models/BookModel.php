@@ -125,23 +125,62 @@ class BookModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function searchBooks($keyword)
+    // Find this method in your BookModel.php and update the SELECT line:
+    public function searchBooks($keyword = '', $categoryId = '')
     {
-        $searchTerm = "%$keyword%";
-        $sql = "SELECT 
-                    b.book_id, 
-                    b.book_name, 
-                    b.availability_status,
-                    a.author_name, 
-                    c.category_name 
+        $sql = "SELECT b.book_id, b.book_name, b.availability_status, 
+                    b.status, b.book_description, b.publish_date,
+                    a.author_name, c.category_name 
                 FROM Books b
                 JOIN Authors a ON b.author_id = a.author_id
                 JOIN Categories c ON b.category_id = c.category_id
-                WHERE b.book_name LIKE ? OR a.author_name LIKE ?
-                ORDER BY b.book_name ASC";
+                WHERE 1=1";
+
+        $params = [];
+
+        if (!empty($keyword)) {
+            $sql .= " AND (b.book_name LIKE ? OR a.author_name LIKE ?)";
+            $params[] = "%$keyword%";
+            $params[] = "%$keyword%";
+        }
+
+        if (!empty($categoryId)) {
+            $sql .= " AND b.category_id = ?";
+            $params[] = $categoryId;
+        }
+
+        $sql .= " ORDER BY b.book_name ASC";
         
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$searchTerm, $searchTerm]);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Get top 5 most borrowed books
+    public function getMostBorrowedBooks()
+    {
+        $sql = "SELECT b.book_name, a.author_name, COUNT(h.history_id) as borrow_count
+                FROM Books b
+                JOIN Histories h ON b.book_id = h.book_id
+                JOIN Authors a ON b.author_id = a.author_id
+                GROUP BY b.book_id
+                ORDER BY borrow_count DESC
+                LIMIT 5";
+        $stmt = $this->db->query($sql);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Get top 5 newest arrivals
+    public function getNewArrivals()
+    {
+        $sql = "SELECT b.book_name, a.author_name, b.created_at
+                FROM Books b
+                JOIN Authors a ON b.author_id = a.author_id
+                ORDER BY b.created_at DESC
+                LIMIT 5";
+        $stmt = $this->db->query($sql);
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

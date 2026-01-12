@@ -136,6 +136,8 @@ class AuthController extends Controller
         if ($roleId == 2) {
             $data['availableBooks'] = $this->bookModel->getAvailableBooks(); 
             $data['myHistory'] = $this->historyModel->getUserHistory($userId);
+            $data['mostBorrowed'] = $this->bookModel->getMostBorrowedBooks();
+            $data['newArrivals'] = $this->bookModel->getNewArrivals();
             
             $this->view('auth/dashboard', $data);
             return;

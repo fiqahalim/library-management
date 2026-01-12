@@ -23,19 +23,22 @@ class StudentController extends Controller
     // Requirement: View Available Books (Title, Author, Category)
     public function viewBooks()
     {
+        $categoryModel = $this->model('CategoryModel');
+        
         $search = $_GET['search'] ?? '';
-    
-        if (!empty($search)) {
-            $books = $this->bookModel->searchBooks($search);
-        } else {
-            $books = $this->bookModel->getAllBooks();
-        }
+        $catId = $_GET['category_id'] ?? '';
+
+        $books = $this->bookModel->searchBooks($search, $catId);
+        $categories = $categoryModel->getAllCategories();
 
         $data = [
-            'title' => 'Available Books',
-            'books' => $books,
-            'search' => $search,
+            'title'      => 'Available Books',
+            'books'      => $books,
+            'categories' => $categories,
+            'search'     => $search,
+            'catId'      => $catId
         ];
+
         $this->view('student/books/index', $data);
     }
 
@@ -70,5 +73,23 @@ class StudentController extends Controller
             'history' => $this->historyModel->getUserHistory($_SESSION['user_id'])
         ];
         $this->view('student/history/index', $data);
+    }
+
+    public function bookDetails()
+    {
+        $bookId = $_GET['id'] ?? null;
+        if (!$bookId) {
+            header("Location: " . APP_URL . "/student/books");
+            exit;
+        }
+
+        $book = $this->bookModel->getById($bookId);
+        
+        $data = [
+            'title' => 'Book Details',
+            'book' => $book
+        ];
+        
+        $this->view('student/books/details', $data);
     }
 }

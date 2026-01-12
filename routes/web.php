@@ -37,6 +37,7 @@ Route::group('/auth', function () {
  */
 Route::group('/student', function () {
     Route::get('/books', 'Student@viewBooks');
+    Route::get('/book/details', 'Student@bookDetails');
     Route::post('/borrow', 'Student@borrowBook');
     Route::get('/history', 'Student@viewHistory');
     Route::post('/cancel-request', 'Student@cancelBorrowRequest');
