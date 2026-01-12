@@ -2,12 +2,13 @@
 
 class AdminController extends Controller
 {
-    private $db, $authorModel, $bookModel, $userModel, $roleModel;
+    private $db, $authorModel, $bookModel, $categoryModel, $userModel, $roleModel;
 
     public function __construct()
     {
         $this->authorModel = $this->model('AuthorModel');
         $this->bookModel = $this->model('BookModel');
+        $this->categoryModel = $this->model('CategoryModel');
         $this->userModel = $this->model('UserModel');
         $this->roleModel = $this->model('RoleModel');
 
@@ -110,8 +111,125 @@ class AdminController extends Controller
         ]);
     }
 
+    public function createOrUpdateBook($id = null)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        // Fetch dependencies for dropdowns
+        $authors = $this->authorModel->getAllAuthors();
+        $categories = $this->categoryModel->getAllCategories();
+
+        $data = [
+            'book' => null,
+            'authors' => $authors,
+            'categories' => $categories,
+            'title'  => $id ? 'Edit Book' : 'Create Book'
+        ];
+
+        if ($id) {
+            $data['book'] = $this->bookModel->getById($id);
+            if (!$data['book']) {
+                Flash::set('error', 'Book not found.');
+                header('Location: ' . APP_URL . '/admin/books');
+                exit;
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $bookData = [
+                'book_name'           => trim($_POST['book_name']),
+                'book_description'    => trim($_POST['book_description']),
+                'publish_date'        => $_POST['publish_date'],
+                'category_id'         => $_POST['category_id'],
+                'author_id'           => $_POST['author_id'],
+                'status'              => $_POST['status'],
+                'availability_status' => $_POST['availability_status'],
+            ];
+
+            if ($id) {
+                $result = $this->bookModel->update($id, $bookData);
+                $msg = 'Book updated successfully!';
+            } else {
+                $result = $this->bookModel->create($bookData);
+                $msg = 'Book created successfully!';
+            }
+
+            if ($result) {
+                Flash::set('success', $msg);
+                header('Location: ' . APP_URL . '/admin/books');
+                exit;
+            }
+        }
+
+        $this->view('admin/books/create-edit', $data);
+    }
+
     // CATEGORIES MANAGEMENT
-    
+    public function category()
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        $categories = $this->categoryModel->getAllCategories();
+
+        $this->view('admin/categories/index', [
+            'categories' => $categories,
+            'fullname' => $_SESSION['fullname'],
+            'role_id' => $_SESSION['role_id']
+        ]);
+    }
+
+    public function createOrUpdateCategory($id = null)
+    {
+        if ($_SESSION['role_id'] != 1) {
+            header('Location: ' . APP_URL . '/auth/dashboard');
+            exit;
+        }
+
+        $data = [
+            'category' => null,
+            'title'    => $id ? 'Edit Category' : 'Create Category'
+        ];
+
+        if ($id) {
+            $data['category'] = $this->categoryModel->getById($id);
+            if (!$data['category']) {
+                Flash::set('error', 'Category not found.');
+                header('Location: ' . APP_URL . '/admin/categories');
+                exit;
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $catData = [
+                'category_name' => trim($_POST['category_name']),
+                'category_type' => trim($_POST['category_type']),
+                'status'        => $_POST['status']
+            ];
+
+            if ($id) {
+                $result = $this->categoryModel->update($id, $catData);
+                $msg = 'Category updated successfully!';
+            } else {
+                $result = $this->categoryModel->create($catData);
+                $msg = 'Category created successfully!';
+            }
+
+            if ($result) {
+                Flash::set('success', $msg);
+                header('Location: ' . APP_URL . '/admin/categories');
+                exit;
+            }
+        }
+
+        $this->view('admin/categories/create-edit', $data);
+    }
+
     // STUDENTS MANAGEMENT
     public function students()
     {

@@ -60,7 +60,7 @@ class BookModel
     }
 
     // Join methods category_id and author_id FK (Get Book details)
-    public function bookDetails()
+    public function getAllBooks()
     {
         $sql = "SELECT 
                     b.book_id,
@@ -79,6 +79,15 @@ class BookModel
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getById($id)
+    {
+        $sql = "SELECT * FROM books WHERE book_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // Get book count by category
@@ -112,6 +121,4 @@ class BookModel
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-
 }

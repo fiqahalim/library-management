@@ -46,4 +46,23 @@ class CategoryModel
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([$id]);
     }
+
+    // Get all categories for dropdowns and lists
+    public function getAllCategories()
+    {
+        $sql = "SELECT * FROM Categories ORDER BY category_name ASC";
+        $stmt = $this->db->query($sql);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Get a single category by ID (needed for Edit mode)
+    public function getById($id)
+    {
+        $sql = "SELECT * FROM Categories WHERE category_id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$id]);
+        
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
