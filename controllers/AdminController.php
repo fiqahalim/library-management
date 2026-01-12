@@ -2,7 +2,7 @@
 
 class AdminController extends Controller
 {
-    private $db, $authorModel, $bookModel, $categoryModel, $userModel, $roleModel;
+    private $db, $authorModel, $bookModel, $categoryModel, $userModel, $roleModel, $historyModel;
 
     public function __construct()
     {
@@ -11,6 +11,7 @@ class AdminController extends Controller
         $this->categoryModel = $this->model('CategoryModel');
         $this->userModel = $this->model('UserModel');
         $this->roleModel = $this->model('RoleModel');
+        $this->historyModel = $this->model('HistoryModel');
 
         $this->db = Database::getInstance()->getConnection();
     }
@@ -365,5 +366,41 @@ class AdminController extends Controller
             header('Location: ' . APP_URL . '/admin/students');
         }
         exit;
+    }
+
+    public function borrowRequests()
+    {
+        $data = [
+            'requests' => $this->historyModel->getAllRequests(),
+            'title' => 'Manage Borrowing Requests'
+        ];
+        $this->view('admin/borrowing/index', $data);
+    }
+
+    public function updateRequestStatus()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['history_id'];
+            $status = $_POST['status'];
+            $this->historyModel->processRequest($id, $status);
+            Flash::set('success', "Request updated to $status.");
+            header("Location: " . APP_URL . "/auth/dashboard");
+        }
+    }
+
+    public function returnBook() 
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = $_POST['history_id'];
+            
+            if ($this->historyModel->markAsReturned($id)) {
+                Flash::set('success', "Book has been marked as returned.");
+            } else {
+                Flash::set('danger', "Failed to process return.");
+            }
+            
+            header("Location: " . APP_URL . "/auth/dashboard");
+            exit;
+        }
     }
 }

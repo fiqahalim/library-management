@@ -74,6 +74,7 @@ Route::group('/admin', function () {
     Route::get('/students/view/{id}', 'Admin@viewStudent');
 
     // Borrowing/History Management
-    Route::get('/borrow-requests', 'Admin@borrowHistory');
-    Route::post('/borrow-requests/update', 'Admin@updateBorrowHistory');
+    Route::get('/borrowing', 'Admin@borrowRequests');
+    Route::post('/borrowing/update', 'Admin@updateRequestStatus');
+    Route::post('/borrowing/return', 'Admin@returnBook');
 });

@@ -129,4 +129,68 @@ class HistoryModel
 
         return $stmt->execute([$status, $id]);
     }
+
+    public function getAllRequests()
+    {
+        $sql = "SELECT h.history_id, h.borrow_date, h.return_date, h.status, 
+                    b.book_id, b.book_name, u.fullname as student_name
+                FROM Histories h
+                JOIN Books b ON h.book_id = b.book_id
+                JOIN Users u ON h.user_id = u.user_id
+                ORDER BY FIELD(h.status, 'Pending', 'Approved', 'Returned', 'Cancelled'), h.borrow_date DESC";
+        $stmt = $this->db->query($sql);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function processRequest($historyId, $status)
+    {
+        $this->db->beginTransaction();
+        try {
+            $sql = "UPDATE Histories SET status = ? WHERE history_id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$status, $historyId]);
+
+            if ($status === 'Approved') {
+                $sqlBook = "UPDATE Books SET availability_status = 'Borrowed' 
+                            WHERE book_id = (SELECT book_id FROM Histories WHERE history_id = ?)";
+                $stmtBook = $this->db->prepare($sqlBook);
+                $stmtBook->execute([$historyId]);
+            }
+            
+            if ($status === 'Rejected' || $status === 'Cancelled') {
+                $sqlBook = "UPDATE Books SET availability_status = 'Available' 
+                            WHERE book_id = (SELECT book_id FROM Histories WHERE history_id = ?)";
+                $stmtBook = $this->db->prepare($sqlBook);
+                $stmtBook->execute([$historyId]);
+            }
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return false;
+        }
+    }
+
+    public function markAsReturned($historyId)
+    {
+        $this->db->beginTransaction();
+        try {
+            $now = date('Y-m-d H:i:s');
+
+            $stmt = $this->db->prepare("UPDATE Histories SET status = 'Returned', return_date = ? WHERE history_id = ?");
+            $stmt->execute([$now, $historyId]);
+
+            $sqlBook = "UPDATE Books SET availability_status = 'Available' WHERE book_id = (SELECT book_id FROM Histories WHERE history_id = ?)";
+            $stmtBook = $this->db->prepare($sqlBook);
+            $stmtBook->execute([$historyId]);
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return false;
+        }
+    }
 }

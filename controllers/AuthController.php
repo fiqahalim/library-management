@@ -127,6 +127,7 @@ class AuthController extends Controller
         if ($roleId == 1) {
             $data['totalBooks'] = count($this->bookModel->getAllBooks());
             $data['totalUsers'] = count($this->userModel->getAllUsers());
+            $data['requests'] = $this->historyModel->getAllRequests();
 
             $this->view('auth/dashboard', $data);
             return;
