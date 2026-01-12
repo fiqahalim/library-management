@@ -75,6 +75,7 @@ class UserModel
         $sql = "SELECT COUNT(*) FROM users WHERE role_id = 2 AND is_verified = 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
+        
         return $stmt->fetchColumn();
     }
 

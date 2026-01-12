@@ -10861,19 +10861,19 @@ a:focus {
 }
 
 .bg-login-image {
-  background: url("https://d4804za1f1gw.cloudfront.net/wp-content/uploads/sites/50/2018/11/hero.jpg");
+  background: url("../img/bg-login-image.jpg") !important;
   background-position: center;
   background-size: cover;
 }
 
 .bg-register-image {
-  background: url("https://source.unsplash.com/Mv9hjnEUHR4/600x800");
+  background: url("../img/bg-login-image.jpg");
   background-position: center;
   background-size: cover;
 }
 
 .bg-password-image {
-  background: url("https://source.unsplash.com/oWTW-jNGl9I/600x800");
+  background: url("../img/bg-login-image.jpg");
   background-position: center;
   background-size: cover;
 }

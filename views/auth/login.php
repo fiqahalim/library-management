@@ -11,9 +11,26 @@
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                             </div>
+                            <?php if ($msg = Flash::get('success')): ?>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?= $msg ?>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($msg = Flash::get('error')): ?>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <?= $msg ?>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
                             <form class="user" action="<?= APP_URL ?>/auth/login" method="POST">
                                 <div class="form-group">
-                                    <input type="email" name="email" class="form-control form-control-user" placeholder="Enter Email Address..." required>
+                                    <input type="text" name="username" class="form-control form-control-user" placeholder="Username" required>
                                 </div>
                                 <div class="form-group">
                                     <input type="password" name="password" class="form-control form-control-user" placeholder="Password" required>

@@ -47,20 +47,32 @@ Route::group('/student', function () {
  * 4. Admin Routes
  */
 Route::group('/admin', function () {
-    // Student/Member Management
-    Route::get('/members', 'Admin@members');
-    Route::match(['GET', 'POST'], '/members/create', 'Admin@createOrUpdateMember');
-    Route::match(['GET', 'POST'], '/members/edit/{id}', 'Admin@createOrUpdateMember');
-    Route::get('/members/delete/{id}', 'Admin@deleteMember');
-    Route::get('/members/view/{id}', 'Admin@viewMember');
+    // Authors Management
+    Route::get('/authors', 'Admin@author'); 
+    Route::match(['GET', 'POST'], '/authors/create', 'Admin@createOrUpdateAuthor');
+    Route::match(['GET', 'POST'], '/authors/edit/{id}', 'Admin@createOrUpdateAuthor');
+    Route::get('/authors/delete/{id}', 'Admin@deleteAuthor');
 
-    // Book Management (Uses 'plans' logic from your template)
-    Route::get('/books', 'Admin@plans'); 
+    // Book Management
+    Route::get('/books', 'Admin@books'); 
     Route::match(['GET', 'POST'], '/books/create', 'Admin@createOrUpdatePlan');
     Route::match(['GET', 'POST'], '/books/edit/{id}', 'Admin@createOrUpdatePlan');
     Route::get('/books/delete/{id}', 'Admin@deletePlan');
 
+    // Categories Management
+    Route::get('/categories', 'Admin@categories'); 
+    Route::match(['GET', 'POST'], '/categories/create', 'Admin@createOrUpdateCategory');
+    Route::match(['GET', 'POST'], '/categories/edit/{id}', 'Admin@createOrUpdateCategory');
+    Route::get('/categories/delete/{id}', 'Admin@deleteCategory');
+
+    // Student Management
+    Route::get('/students', 'Admin@students');
+    Route::match(['GET', 'POST'], '/students/create', 'Admin@createOrUpdateStudent');
+    Route::match(['GET', 'POST'], '/students/edit/{id}', 'Admin@createOrUpdateStudent');
+    Route::get('/students/delete/{id}', 'Admin@deleteStudent');
+    Route::get('/students/view/{id}', 'Admin@viewStudent');
+
     // Borrowing/History Management
-    Route::get('/borrow-requests', 'Admin@payments');
-    Route::post('/borrow-requests/update', 'Admin@updateStatus');
+    Route::get('/borrow-requests', 'Admin@borrowHistory');
+    Route::post('/borrow-requests/update', 'Admin@updateBorrowHistory');
 });

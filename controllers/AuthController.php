@@ -18,6 +18,8 @@ class AuthController extends Controller
 
     public function authenticate()
     {
+        file_put_contents('debug.txt', 'test' . PHP_EOL, FILE_APPEND);
+
         if (session_status() === PHP_SESSION_NONE) session_start();
 
         $loginInput = trim($_POST['username'] ?? ''); 
@@ -29,8 +31,6 @@ class AuthController extends Controller
 
         // Check if user exists and password is correct
         if ($user && password_verify($password, $user['password'])) {
-            
-            // Check if account is Active
             if ($user['status'] !== 'Active') {
                 Flash::set('error', "Your account is inactive. Please contact the librarian.");
                 header("Location: " . APP_URL . "/auth/login");
@@ -45,11 +45,7 @@ class AuthController extends Controller
             Flash::set('success', "Welcome back, " . $user['fullname']);
 
             // Redirect based on Role ID (1=Admin, 2=Student)
-            if ($user['role_id'] == 1) {
-                header("Location: " . APP_URL . "/admin/members");
-            } else {
-                header("Location: " . APP_URL . "/student/dashboard");
-            }
+            header("Location: " . APP_URL . "/auth/dashboard");
             exit;
         }
 
@@ -99,7 +95,7 @@ class AuthController extends Controller
 
         if ($this->userModel->create($data)) {
             Flash::set('success', "Registration success! You can now login.");
-            header("Location: " . APP_URL . "/auth/login"); // Changed from /auth/verify
+            header("Location: " . APP_URL . "/auth/login");
         } else {
             Flash::set('error', "Registration failed. Please try again.");
             header("Location: " . APP_URL . "/auth/register");
@@ -123,45 +119,19 @@ class AuthController extends Controller
         $data = [
             'fullname' => $_SESSION['fullname'] ?? '',
             'role_id'   => $roleId,
-            'activeSubscription' => null,
-            'pastHistory' => [],
-            'availablePlans' => [],
         ];
 
-        // // --- ADMIN DASHBOARD ---
-        // if ($roleId == 1) {
-        //     $subModel = $this->model('SubscriptionModel');
-        //     $payModel = $this->model('PaymentModel');
-        //     $userModel = $this->model('UserModel');
+        // --- ADMIN DASHBOARD ---
+        if ($roleId == 1) {
+            $this->view('auth/dashboard', $data);
+            return;
+        }
 
-        //     $data['totalMembers'] = $userModel->getTotalVerifiedMembers(); 
-        //     $data['activeSubs']   = $subModel->countActiveSubscriptions();
-        //     $data['totalRevenue'] = $payModel->getTotalRevenue();
-        //     $data['revenueChartValues'] = $payModel->getMonthlyRevenue(date('Y'));
-        //     $data['recentPayments'] = $payModel->getRecentPayments(5);
-
-        //     $this->view('auth/dashboard', $data);
-        //     return;
-        // }
-
-        // // --- MEMBER DASHBOARD ---
-        // if ($roleId == 2) {
-        //     $mySubscriptions = $this->subscriptionModel->getByUser($userId);
-            
-        //     $currentDate = date('Y-m-d');
-
-        //     foreach ($mySubscriptions as $sub) {
-        //         if ($sub['status'] === 'Active' && $sub['end_date'] >= $currentDate) {
-        //             $data['activeSubscription'] = $sub;
-        //         }
-        //         $data['pastHistory'][] = $sub;
-        //     }
-
-        //     $data['availablePlans'] = $this->planModel->getAllPlans();
-
-        //     $this->view('auth/dashboard', $data);
-        //     return;
-        // }
+        // --- MEMBER DASHBOARD ---
+        if ($roleId == 2) {
+            $this->view('auth/dashboard', $data);
+            return;
+        }
 
         echo "Access Denied: Invalid user role.";
     }
