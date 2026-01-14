@@ -34,7 +34,7 @@
                                 <td><?= htmlspecialchars($author['bio']) ?></td>
                                 <td><?= date('d M Y', strtotime($author['created_at'])) ?></td>
                                 <td>
-                                    <a href="<?= APP_URL ?>/admin/authors/edit/<?= $author['author_id'] ?>" class="btn btn-primary btn-sm">Edit</a>
+                                    <a href="<?= APP_URL ?>/admin/authors/edit/<?= $author['author_id'] ?>" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
                                     <a href="<?= APP_URL ?>/admin/authors/delete/<?= $author['author_id'] ?>" 
                                         class="btn btn-danger btn-sm" 
                                         onclick="return confirm('Are you sure you want to delete this author? This action cannot be undone.');">

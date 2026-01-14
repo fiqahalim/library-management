@@ -11,32 +11,31 @@ class BookModel
 
     public function create($data)
     {
-        $sql = "INSERT INTO Books (book_name, book_description, publish_date, category_id, author_id, status, availability_status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Books (book_name, book_description, publish_date, category_id, author_id, status, total_stock, available_stock) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $stmt->execute([
             $data['book_name'],
             $data['book_description'],
             $data['publish_date'],
             $data['category_id'],
             $data['author_id'],
             $data['status'],
-            $data['availability_status'],
+            $data['total_stock'],
+            $data['total_stock'],
         ]);
+
+        return $this->db->lastInsertId();
     }
 
     // Update existing Books
     public function update($id, $data)
     {
         $sql = "UPDATE Books SET 
-                book_name = ?,
-                book_description = ?,
-                publish_date = ?,
-                category_id = ?,
-                author_id = ?,
-                status = ?,
-                availability_status = ?
+                book_name = ?, book_description = ?, publish_date = ?, 
+                category_id = ?, author_id = ?, status = ?, 
+                total_stock = ?, available_stock = ?
                 WHERE book_id = ?";
         $stmt = $this->db->prepare($sql);
 
@@ -47,9 +46,25 @@ class BookModel
             $data['category_id'],
             $data['author_id'],
             $data['status'],
-            $data['availability_status'],
+            $data['total_stock'],
+            $data['available_stock'],
             $id
         ]);
+    }
+
+    public function saveImage($id, $path, $type = 'book')
+    {
+        $column = ($type === 'book') ? 'book_id' : 'author_id';
+        
+        // Remove old image if updating
+        $sqlDelete = "DELETE FROM Media WHERE $column = ?";
+        $stmtDel = $this->db->prepare($sqlDelete);
+        $stmtDel->execute([$id]);
+
+        $sql = "INSERT INTO Media (file_path, $column) VALUES (?, ?)";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([$path, $id]);
     }
 
     public function delete($id)
@@ -62,22 +77,15 @@ class BookModel
     // Join methods category_id and author_id FK (Get Book details)
     public function getAllBooks()
     {
-        $sql = "SELECT 
-                    b.book_id,
-                    b.book_name,
-                    b.book_description,
-                    b.publish_date,
-                    b.status,
-                    b.availability_status,
-                    c.category_name,
-                    a.author_name
+        $sql = "SELECT b.*, c.category_name, a.author_name, m.file_path as book_image
                 FROM Books b
                 INNER JOIN Categories c ON b.category_id = c.category_id
                 INNER JOIN Authors a ON b.author_id = a.author_id
+                LEFT JOIN Media m ON b.book_id = m.book_id
                 ORDER BY b.book_id DESC";
         
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
+        $stmt = $this->db->query($sql);
+        
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

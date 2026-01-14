@@ -86,7 +86,8 @@ class UserModel
     public function getAllUsers() {
         $sql = "SELECT u.*, r.role_name 
                 FROM users u 
-                JOIN roles r ON u.role_id = r.role_id 
+                JOIN roles r ON u.role_id = r.role_id
+                WHERE u.role_id = 2
                 ORDER BY u.created_at DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

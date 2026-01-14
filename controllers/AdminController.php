@@ -63,14 +63,21 @@ class AdminController extends Controller
             ];
 
             if ($id) {
-                if ($this->authorModel->update($id, $authorData)) {
-                    Flash::set('success', 'Author updated successfully!');
-                }
+                $this->authorModel->update($id, $authorData);
+                $authorId = $id;
             } else {
-                if ($this->authorModel->create($authorData)) {
-                    Flash::set('success', 'Author created successfully!');
+                $authorId = $this->authorModel->create($authorData);
+            }
+
+            if (!empty($_FILES['author_face']['name'])) {
+                require_once __DIR__ . '/../helpers/ImageService.php';
+                $path = ImageService::upload($_FILES['author_face'], 'authors');
+                if ($path) {
+                    $this->bookModel->saveImage($authorId, $path, 'author');
                 }
             }
+
+            Flash::set('success', 'Author processed successfully!');
             header('Location: ' . APP_URL . '/admin/authors');
             exit;
         }
@@ -141,31 +148,45 @@ class AdminController extends Controller
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $bookData = [
-                'book_name'           => trim($_POST['book_name']),
-                'book_description'    => trim($_POST['book_description']),
-                'publish_date'        => $_POST['publish_date'],
-                'category_id'         => $_POST['category_id'],
-                'author_id'           => $_POST['author_id'],
-                'status'              => $_POST['status'],
-                'availability_status' => $_POST['availability_status'],
+                'book_name'        => trim($_POST['book_name']),
+                'book_description' => trim($_POST['book_description']),
+                'publish_date'     => $_POST['publish_date'],
+                'category_id'      => $_POST['category_id'],
+                'author_id'        => $_POST['author_id'],
+                'status'           => $_POST['status'],
+                'total_stock'      => (int)$_POST['total_stock'],
+                'available_stock'  => (int)($_POST['available_stock'] ?? $_POST['total_stock']),
             ];
 
             if ($id) {
-                $result = $this->bookModel->update($id, $bookData);
+                $this->bookModel->update($id, $bookData);
+                $bookId = $id;
                 $msg = 'Book updated successfully!';
             } else {
-                $result = $this->bookModel->create($bookData);
+                $bookId = $this->bookModel->create($bookData);
                 $msg = 'Book created successfully!';
             }
 
-            if ($result) {
-                Flash::set('success', $msg);
-                header('Location: ' . APP_URL . '/admin/books');
-                exit;
+            if (!empty($_FILES['book_image']['name'])) {
+                require_once __DIR__ . '/../helpers/ImageService.php';
+                $path = ImageService::upload($_FILES['book_image'], 'books');
+                if ($path) {
+                    $this->bookModel->saveImage($bookId, $path, 'book');
+                }
             }
+
+            Flash::set('success', $msg);
+            header('Location: ' . APP_URL . '/admin/books');
+            exit;
         }
 
         $this->view('admin/books/create-edit', $data);
+    }
+
+    // View Book
+    public function viewBook($id)
+    {
+        
     }
 
     // Delete book
